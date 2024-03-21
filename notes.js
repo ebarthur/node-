@@ -1,4 +1,5 @@
 import http from "http";
+import fs from "fs/promises";
 
 console.log(process.env.NODE_ENV); // undefined for now
 
@@ -40,3 +41,5 @@ async function readFile() {
 }
 
 readFile();
+
+/* https://scottmoss.notion.site/Intro-to-Node-js-V3-7c8e4ccaebf94b839f425fff13dcc44c */

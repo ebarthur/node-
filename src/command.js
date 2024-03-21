@@ -1,7 +1,34 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import {
+  newNote,
+  getAllNotes,
+  findNotes,
+  removeNote,
+  removeAllNotes,
+} from "./notes.js";
+import { listNotes } from "./utils.js";
+import { start } from "./server.js";
+
+
+const APP_VERSION = "1.0.0";
+
+const displayAppInfo = () => {
+  console.log(`Yuck Notes App (Version ${APP_VERSION})`);
+  console.log(`
+  Y   Y  U   U  CCCCC   K   K
+   Y Y   U   U  C       K  K
+    Y    U   U  C       K K
+    Y    U   U  C       KK
+    Y    U   U  C       K K
+    Y     UUU   CCCCC   K   K
+  `);
+  console.log("Welcome to Yuck Notes App!");
+  console.log("To see available commands, type 'yuck --help'");
+};
 
 yargs(hideBin(process.argv))
+  .scriptName("yuck")
   .command(
     "new <note>",
     "create a new note",
@@ -12,7 +39,9 @@ yargs(hideBin(process.argv))
       });
     },
     async (argv) => {
-      console.log(argv.note);
+      const tags = argv.tags ? argv.tags.split(",") : [];
+      const note = await newNote(argv.note, tags);
+      console.log("Note added!", note.id);
     }
   )
   .option("tags", {
@@ -24,7 +53,10 @@ yargs(hideBin(process.argv))
     "all",
     "get all notes",
     () => {},
-    async (argv) => {}
+    async (argv) => {
+      const notes = await getAllNotes();
+      listNotes(notes);
+    }
   )
   .command(
     "find <filter>",
@@ -36,7 +68,10 @@ yargs(hideBin(process.argv))
         type: "string",
       });
     },
-    async (argv) => {}
+    async (argv) => {
+      const notes = await findNotes(argv.filter);
+      listNotes(notes);
+    }
   )
   .command(
     "remove <id>",
@@ -47,7 +82,14 @@ yargs(hideBin(process.argv))
         description: "The id of the note you want to remove",
       });
     },
-    async (argv) => {}
+    async (argv) => {
+      const id = await removeNote(argv.id);
+      if (id) {
+        console.log("Note removed: ", id);
+      } else {
+        console.log("Note not found");
+      }
+    }
   )
   .command(
     "web [port]",
@@ -59,13 +101,27 @@ yargs(hideBin(process.argv))
         type: "number",
       });
     },
-    async (argv) => {}
+    async (argv) => {
+      const notes = await getAllNotes();
+      start(notes, argv.port);
+    }
   )
   .command(
     "clean",
     "remove all notes",
     () => {},
-    async (argv) => {}
+    async (argv) => {
+      await removeAllNotes();
+      console.log("All notes removed");
+    }
+  )
+  .command(
+    "$0",
+    "display app version and welcome visual",
+    () => {},
+    () => {
+      displayAppInfo();
+    }
   )
   .demandCommand(1)
   .parse();
